@@ -14,7 +14,7 @@ class TaskModel(db.Model):
     status = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
-        return f"Video(title = {self.title}, status = {self.status})"
+        return f"Task(title = {self.title}, status = {self.status})"
 
 
 task_put_args = reqparse.RequestParser()
@@ -28,7 +28,7 @@ task_update_args.add_argument("status", type=int, help="status of the Task to be
 resource_fields = {
     'id': fields.Integer,
     'title': fields.String,
-    'status': fields.Integer, #vhere i put it as integer to be like specific values in the database
+    'status': fields.Integer, #here i put it as integer to be like specific values in the database
                               #like 0 for not completed,1 competed ,2 delayed ...etc
 
 }
@@ -62,9 +62,9 @@ class Task(Resource):
             abort(404, message="Task doesn't exist, cannot update")
 
         if args['title']:
-            result.name = args['title']
+            result.title = args['title']
         if args['status']:
-            result.views = args['status']
+            result.status = args['status']
 
         db.session.commit()
 
@@ -72,7 +72,7 @@ class Task(Resource):
 
     # def delete(self, task_id):
     #     abort_if_task_id_doesnt_exist(task_id)
-    #     del tasks[video_id]
+    #     del tasks[task_id]
     #     return '', 204
 
 
