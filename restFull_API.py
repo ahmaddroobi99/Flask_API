@@ -8,79 +8,75 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
 
 
-class VideoModel(db.Model):
+class TaskModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    views = db.Column(db.Integer, nullable=False)
-    likes = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    status = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
-        return f"Video(name = {self.name}, views = {self.views}, likes = {self.likes})"
+        return f"Video(title = {self.title}, status = {self.status})"
 
 
-video_put_args = reqparse.RequestParser()
-video_put_args.add_argument("name", type=str, help="Name of the video is required", required=True)
-video_put_args.add_argument("views", type=int, help="Views of the video", required=True)
-video_put_args.add_argument("likes", type=int, help="Likes on the video", required=True)
+task_put_args = reqparse.RequestParser()
+task_put_args.add_argument("title", type=str, help="title of the task is required", required=True)
+task_put_args.add_argument("status", type=int, help="status of the Task", required=True)
 
-video_update_args = reqparse.RequestParser()
-video_update_args.add_argument("name", type=str, help="Name of the video is required")
-video_update_args.add_argument("views", type=int, help="Views of the video")
-video_update_args.add_argument("likes", type=int, help="Likes on the video")
+task_update_args = reqparse.RequestParser()
+task_update_args.add_argument("title", type=str, help="title of the task to be updated is required")
+task_update_args.add_argument("status", type=int, help="status of the Task to be updated")
 
 resource_fields = {
     'id': fields.Integer,
-    'name': fields.String,
-    'views': fields.Integer,
-    'likes': fields.Integer
+    'title': fields.String,
+    'status': fields.Integer, #vhere i put it as integer to be like specific values in the database
+                              #like 0 for not completed,1 competed ,2 delayed ...etc
+
 }
 
 
-class Video(Resource):
+class Task(Resource):
     @marshal_with(resource_fields)
-    def get(self, video_id):
-        result = VideoModel.query.filter_by(id=video_id).first()
+    def get(self, task_id):
+        result = TaskModel.query.filter_by(id=task_id).first()  #filtering like in js in web
         if not result:
-            abort(404, message="Could not find video with that id")
+            abort(404, message="Could not find task with that id")
         return result
 
     @marshal_with(resource_fields)
-    def put(self, video_id):
-        args = video_put_args.parse_args()
-        result = VideoModel.query.filter_by(id=video_id).first()
+    def put(self, task_id):
+        args = task_put_args.parse_args()
+        result = TaskModel.query.filter_by(id=task_id).first()
         if result:
-            abort(409, message="Video id taken...")
+            abort(409, message="task id taken...")
 
-        video = VideoModel(id=video_id, name=args['name'], views=args['views'], likes=args['likes'])
-        db.session.add(video)
+        task = TaskModel(id=task_id, title=args['title'], status=args['status'])
+        db.session.add(task)
         db.session.commit()
-        return video, 201
+        return task, 201
 
     @marshal_with(resource_fields)
-    def patch(self, video_id):
-        args = video_update_args.parse_args()
-        result = VideoModel.query.filter_by(id=video_id).first()
+    def patch(self, task_id):
+        args = task_update_args.parse_args()
+        result = TaskModel.query.filter_by(id=task_id).first()
         if not result:
-            abort(404, message="Video doesn't exist, cannot update")
+            abort(404, message="Task doesn't exist, cannot update")
 
-        if args['name']:
-            result.name = args['name']
-        if args['views']:
-            result.views = args['views']
-        if args['likes']:
-            result.likes = args['likes']
+        if args['title']:
+            result.name = args['title']
+        if args['status']:
+            result.views = args['status']
 
         db.session.commit()
 
         return result
 
-    def delete(self, video_id):
-        abort_if_video_id_doesnt_exist(video_id)
-        del videos[video_id]
-        return '', 204
+    # def delete(self, task_id):
+    #     abort_if_task_id_doesnt_exist(task_id)
+    #     del tasks[video_id]
+    #     return '', 204
 
 
-api.add_resource(Video, "/video/<int:video_id>")
+api.add_resource(Task, "/task/<int:task_id>")
 
 if __name__ == "__main__":
     app.run(debug=True)
